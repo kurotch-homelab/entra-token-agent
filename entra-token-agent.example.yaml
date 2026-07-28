@@ -1,4 +1,4 @@
-# Example configuration for entra-token-agent (draft; fields may change).
+# Example configuration for entra-token-agent.
 # Copy to entra-token-agent.yaml and fill in your values.
 
 # Entra tenant (directory) GUID.
@@ -16,6 +16,10 @@ scopes:
 # Where the fresh access token is written (0600, atomic temp+rename).
 # Point Alloy/Prometheus bearer_token_file at this path.
 token_file: "/run/entra-token-agent/token"
+
+# MSAL's refresh-token cache. Protect this file like a password. If omitted it
+# defaults to .entra-token-agent.cache next to the configuration file.
+cache_file: "/var/lib/entra-token-agent/msal.cache"
 
 # Refresh the token this long before it expires.
 refresh_skew: "5m"
