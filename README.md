@@ -5,7 +5,7 @@
 > **bearer token** written to a file that any `bearer_token_file` consumer can read
 > — Prometheus / Grafana Alloy `remote_write`, and more.
 
-> **Status:** early scaffold. Private for now; intended to be released as OSS.
+> **Status:** usable release candidate. Test in your tenant before production.
 
 ## Why
 
@@ -59,13 +59,35 @@ So Alloy stays vanilla and upgradable; this agent owns the login/refresh loop.
         └── self-metric: last_refresh_success_timestamp  ──►  alert on staleness
 ```
 
-## Planned configuration (draft)
+## Install and run
+
+Create an Entra **public client** app registration, enable public-client/device
+code flow, grant it the target API's delegated scope, then download a release
+archive or build with Go 1.23+:
+
+```sh
+go install github.com/kurotch-homelab/entra-token-agent/cmd/entra-token-agent@latest
+cp entra-token-agent.example.yaml entra-token-agent.yaml
+entra-token-agent -config entra-token-agent.yaml
+```
+
+On the first run, follow the URL and code printed to stderr. Later runs use the
+opaque MSAL cache format stored in `cache_file`. The cache file itself is
+permissioned `0600`, but is **not encrypted by this application**; keep its
+directory private and rely on full-disk encryption. Remove it to force login.
+
+The process handles SIGINT/SIGTERM, refreshes before expiration, and retries
+transient acquisition errors every 30 seconds. `-version` prints its build
+version.
+
+## Configuration
 
 ```yaml
 tenant_id:  "<entra-tenant-guid>"
 client_id:  "<app-registration-client-id>"   # public client, device code enabled
 scopes:     ["api://<prometheus-app-id>/metrics.write"]
 token_file: "/run/entra-token-agent/token"    # written 0600, atomic
+cache_file: "/var/lib/entra-token-agent/msal.cache" # refresh-token cache, 0600
 refresh_skew: "5m"                             # refresh this long before expiry
 metrics_addr: "127.0.0.1:9099"                 # exposes last_refresh_success_timestamp
 ```
@@ -90,15 +112,17 @@ prometheus.remote_write "central" {
   phishing). A CA policy scoped to this app must **allow** it.
 - **Watch the watcher**: if refresh fails, metrics stop *silently*. Alert on
   `last_refresh_success_timestamp` going stale.
+- **Health endpoints**: `GET /healthz` reports process health, `GET /readyz`
+  requires a non-expired token, and `GET /metrics` exposes Prometheus metrics.
+- **Cache security**: the MSAL cache contains reusable credentials. It is
+  atomically written with mode `0600`; restrict the parent directory as well.
 
-## Roadmap
+## Release
 
-- [ ] Device code flow login via MSAL Go
-- [ ] Refresh loop + atomic token file writer
-- [ ] Self-metrics endpoint (`last_refresh_success_timestamp`, expiry, failures)
-- [ ] OS credential store for the refresh token (DPAPI / Keychain / libsecret)
-- [ ] systemd / launchd / Windows Service packaging
-- [ ] Generic OIDC provider support (not just Entra)
+Every `v*` tag runs the test suite and GoReleaser, publishing checksum-protected
+Linux, macOS, and Windows archives for amd64 and arm64. Run `make check` before
+tagging. OS credential-store integration and native service packages remain
+future hardening work.
 
 ## License
 

@@ -1,0 +1,21 @@
+version: 2
+project_name: entra-token-agent
+before:
+  hooks:
+    - go test ./...
+builds:
+  - main: ./cmd/entra-token-agent
+    env: [CGO_ENABLED=0]
+    goos: [linux, darwin, windows]
+    goarch: [amd64, arm64]
+    ldflags: [-s -w -X main.version={{.Version}}]
+archives:
+  - formats: [tar.gz]
+    format_overrides:
+      - goos: windows
+        formats: [zip]
+    files: [LICENSE, NOTICE, README.md, entra-token-agent.example.yaml]
+checksum:
+  name_template: checksums.txt
+changelog:
+  use: github
