@@ -1,0 +1,22 @@
+# Binaries
+/entra-token-agent
+/dist/
+*.exe
+*.test
+*.out
+
+# Local config / secrets / token files
+*.local.yaml
+entra-token-agent.yaml
+/run/
+token
+
+# Go
+/vendor/
+go.work
+go.work.sum
+
+# Editor / OS
+.DS_Store
+.idea/
+.vscode/

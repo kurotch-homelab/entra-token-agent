@@ -1,0 +1,24 @@
+# Example configuration for entra-token-agent (draft; fields may change).
+# Copy to entra-token-agent.yaml and fill in your values.
+
+# Entra tenant (directory) GUID.
+tenant_id: "00000000-0000-0000-0000-000000000000"
+
+# App registration client ID. Must be a public client with the
+# device code flow enabled, and allowed by a Conditional Access policy.
+client_id: "00000000-0000-0000-0000-000000000000"
+
+# Scopes requested for the access token. Model Prometheus as an app
+# registration exposing a scope, e.g. api://<prometheus-app-id>/metrics.write
+scopes:
+  - "api://00000000-0000-0000-0000-000000000000/metrics.write"
+
+# Where the fresh access token is written (0600, atomic temp+rename).
+# Point Alloy/Prometheus bearer_token_file at this path.
+token_file: "/run/entra-token-agent/token"
+
+# Refresh the token this long before it expires.
+refresh_skew: "5m"
+
+# Local address exposing self-metrics (last_refresh_success_timestamp, etc.).
+metrics_addr: "127.0.0.1:9099"
