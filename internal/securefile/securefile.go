@@ -5,7 +5,8 @@ import (
 	"path/filepath"
 )
 
-// Write atomically replaces path with data and permissions 0600.
+// Write atomically replaces path with private permissions before writing data.
+// Unix uses 0600; Windows grants access only to the current user and SYSTEM.
 func Write(path string, data []byte) error {
 	dir := filepath.Dir(path)
 	if err := os.MkdirAll(dir, 0700); err != nil {
@@ -17,7 +18,7 @@ func Write(path string, data []byte) error {
 	}
 	tmp := f.Name()
 	defer os.Remove(tmp)
-	if err = f.Chmod(0600); err == nil {
+	if err = protectFile(f); err == nil {
 		_, err = f.Write(data)
 	}
 	if err == nil {
