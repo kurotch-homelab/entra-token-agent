@@ -18,11 +18,13 @@ func TestWrite(t *testing.T) {
 	if string(b) != "secret" {
 		t.Fatalf("got %q", b)
 	}
-	info, err := os.Stat(path)
-	if err != nil {
+	assertPrivate(t, path)
+	if err := Write(path, []byte("rotated")); err != nil {
 		t.Fatal(err)
 	}
-	if info.Mode().Perm() != 0600 {
-		t.Fatalf("mode is %o", info.Mode().Perm())
+	b, err = os.ReadFile(path)
+	if err != nil || string(b) != "rotated" {
+		t.Fatalf("replacement failed: %q, %v", b, err)
 	}
+	assertPrivate(t, path)
 }
