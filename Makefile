@@ -1,4 +1,4 @@
-.PHONY: build test check
+.PHONY: build test check secrets
 
 build:
 	go build -trimpath -ldflags "-s -w" ./cmd/entra-token-agent
@@ -9,3 +9,7 @@ test:
 check:
 	go vet ./...
 	go test -race ./...
+
+secrets:
+	gitleaks git --log-opts="--all" --redact=100 --no-banner .
+	gitleaks dir --redact=100 --no-banner .

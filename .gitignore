@@ -10,6 +10,9 @@
 entra-token-agent.yaml
 /run/
 token
+.entra-token-agent.cache
+msal.cache
+.entra-token-agent-*
 
 # Go
 /vendor/

@@ -117,6 +117,29 @@ prometheus.remote_write "central" {
 - **Cache security**: the MSAL cache contains reusable credentials. It is
   atomically written with mode `0600`; restrict the parent directory as well.
 
+## Secret scanning
+
+CI scans all fetched Git history with Gitleaks v8.30.1 before running the Linux
+tests. The binary version and SHA-256 are pinned; detected secrets are redacted
+and fail CI.
+
+For local checks, install Gitleaks v8.30.1 from the
+[official releases](https://github.com/gitleaks/gitleaks/releases/tag/v8.30.1)
+and run `make secrets`. Without Make, run these commands directly:
+
+```sh
+gitleaks git --log-opts="--all" --redact=100 --no-banner .
+gitleaks dir --redact=100 --no-banner .
+```
+
+The second command checks current files, including uncommitted changes. These
+checks do not install a Git hook; run them before committing or pushing. CI
+detects secrets after upload, so it cannot prevent the initial disclosure.
+Keep token and cache files outside the repository. The default cache names and
+temporary credential files are also excluded by `.gitignore`; custom paths need
+their own exclusions. Gitleaks may still flag local credentials during a
+directory scan, even when Git ignores them.
+
 ## Release
 
 Every `v*` tag runs the test suite and GoReleaser, publishing checksum-protected
