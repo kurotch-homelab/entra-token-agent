@@ -9,12 +9,19 @@ builds:
     goos: [linux, darwin, windows]
     goarch: [amd64, arm64]
     ldflags: [-s -w -X main.version={{.Version}}]
+  - id: tray
+    main: ./cmd/entra-token-agent-tray
+    binary: entra-token-agent-tray
+    env: [CGO_ENABLED=0]
+    goos: [windows]
+    goarch: [amd64, arm64]
+    ldflags: [-s -w -H windowsgui -X main.version={{.Version}}]
 archives:
   - formats: [tar.gz]
     format_overrides:
       - goos: windows
         formats: [zip]
-    files: [LICENSE, NOTICE, README.md, entra-token-agent.example.yaml]
+    files: [LICENSE, NOTICE, README.md, entra-token-agent.example.yaml, "scripts/*.ps1"]
 checksum:
   name_template: checksums.txt
 changelog:

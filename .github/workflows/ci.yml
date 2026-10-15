@@ -33,3 +33,10 @@ jobs:
       - run: go test ./...
       - if: runner.os == 'Linux'
         run: go test -race ./...
+      - if: runner.os == 'Windows'
+        run: go build -ldflags "-H windowsgui" ./cmd/entra-token-agent-tray
+      - if: runner.os == 'Windows'
+        run: go build -ldflags "-H windowsgui" ./cmd/entra-token-agent-tray
+        env:
+          GOARCH: arm64
+          CGO_ENABLED: "0"

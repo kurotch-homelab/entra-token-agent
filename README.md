@@ -82,6 +82,51 @@ version.
 
 ## Configuration
 
+### Windows notification-area application
+
+The Windows release also includes `entra-token-agent-tray.exe`. It runs the
+same authentication loop in a GUI-subsystem process, with no PowerShell launcher
+or console window. Grafana Alloy remains an independently managed service.
+
+The tray menu shows authentication status, reopens current sign-in instructions,
+opens the log folder, and exits the token agent. Sign-in requests appear once per
+active request; expired or completed requests are cleared. Exiting stops token
+refresh, so Alloy may eventually lose authorization when the last token expires.
+
+To migrate an existing `%LOCALAPPDATA%\HomeLab\EntraMetrics` installation with
+`config.yaml`, run from the extracted release directory:
+
+```powershell
+.\scripts\install-tray.ps1 -Binary .\entra-token-agent-tray.exe
+```
+
+The script backs up the previous executables, launcher and per-user Run value,
+stops only processes matching that installation, installs the tray executable,
+and registers it directly for login. It leaves the Alloy service and existing
+configuration, token, cache and directory ACLs intact. Logs append to
+`agent-stderr.log` / `agent-stdout.log`; `agent.pid` identifies the tray process.
+The script prints the exact backup path and rollback command. Roll back with
+`-RestoreBackup <backup-directory>` (and `-InstallDir` if using a custom location).
+Installing again is supported; keep the printed backup path for each migration.
+
+After installation, run `scripts/verify-tray.ps1 -BaseUrl http://127.0.0.1:19099`
+(substitute the configured metrics address) to check the native icon, health,
+readiness, metrics and duplicate-launch behavior. A pending first sign-in makes
+the readiness check fail until authentication finishes.
+
+Build locally with Go on Windows:
+
+```powershell
+go build -trimpath -ldflags "-s -w -H windowsgui" -o dist/entra-token-agent-tray.exe ./cmd/entra-token-agent-tray
+```
+
+Windows token and cache writes use a private ACL for the current user and SYSTEM
+rather than POSIX `0600` permissions. Keep the private installation directory;
+Alloy running as LocalSystem retains token read access.
+No browser is opened automatically and no cached credentials are removed.
+
+### Agent settings
+
 ```yaml
 tenant_id:  "<entra-tenant-guid>"
 client_id:  "<app-registration-client-id>"   # public client, device code enabled

@@ -55,6 +55,20 @@ switching.
 - Device code flow blocked by default CA policy → needs an allow policy scoped to
   this app.
 
+## Windows tray frontend
+
+The Windows GUI-subsystem executable embeds the shared authentication loop;
+the original cross-platform CLI remains available. Windows login launches the
+tray executable directly, eliminating the persistent PowerShell console and
+stderr polling. Structured authentication events drive a modeless sign-in
+window; closing it does not cancel authentication, and completed or expired
+requests are removed. A SID-scoped mutex matches the legacy launcher.
+
+Alloy remains a separate LocalSystem Windows service. Its lifecycle, privileges,
+configuration and token-file interface are unchanged. Exiting the tray cancels
+authentication and shuts down the local HTTP listener, but does not stop Alloy.
+The per-user migration script backs up launch configuration and supports rollback.
+
 ## Hybrid option
 
 Any always-on, headless sender that cannot do interactive sign-in should use
